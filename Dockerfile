@@ -1,12 +1,15 @@
-FROM golang:1.21.4
+FROM node:24-alpine
 
-WORKDIR /go/src/app
+WORKDIR /app
 
-COPY . .
+COPY package*.json tsconfig.json ./
 
-RUN go build -o app
-RUN chmod +x app
+RUN npm ci
+
+COPY src ./src
+
+RUN npm run build
 
 EXPOSE 8080
 
-CMD ["./app"]
+CMD ["npm", "start"]

@@ -22,3 +22,9 @@ go.work
 
 # Others
 *.db
+
+# Node/TypeScript
+node_modules/
+dist/
+coverage/
+
