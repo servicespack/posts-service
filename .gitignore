@@ -27,4 +27,6 @@ go.work
 node_modules/
 dist/
 coverage/
+reports/
+.stryker-tmp/
 
