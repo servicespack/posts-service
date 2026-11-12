@@ -14,6 +14,8 @@ import type { AuthenticatedRequest } from '../middlewares/auth-middleware'
 import process from 'node:process'
 import { z } from 'zod'
 
+const MAX_LIST_LIMIT = 100
+
 export class PostController {
   constructor(
     private readonly createPostUseCase: CreatePostUseCase,
@@ -91,7 +93,7 @@ export class PostController {
         replyToId: parsed.data.replyToId,
         tags: parsed.data.tags,
         page: parsed.data.page,
-        limit: parsed.data.limit,
+        limit: parsed.data.limit !== undefined ? Math.min(parsed.data.limit, MAX_LIST_LIMIT) : undefined,
         search: parsed.data.search,
       })
 

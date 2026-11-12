@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Post } from '../domain/entities/post'
 import { ListPostsUseCase } from './list-posts-use-case'
 
-describe('listPostsUseCase', () => {
+describe(ListPostsUseCase.name, () => {
   let postRepository: PostRepository
   let cache: ICacheAdapter
   let useCase: ListPostsUseCase

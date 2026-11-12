@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express'
 import { DummyNotificationAdapter } from './infrastructure/adapters/dummy-notification-adapter'
 import { CacheService } from './infrastructure/cache/cache-service'
 import { initializeDatabase } from './infrastructure/database/connection'
+import { BookmarkModel } from './infrastructure/database/models/bookmark-model'
 import { MongooseBookmarkRepository } from './infrastructure/database/mongoose-bookmark-repository'
 import { MongoosePostRepository } from './infrastructure/database/mongoose-post-repository'
 import { PostControllerWithBookmarks } from './infrastructure/http/controllers/post-controller'
@@ -40,6 +41,10 @@ async function main() {
     const notificationAdapter = new DummyNotificationAdapter()
 
     const isLowdb = process.env.DATABASE_DRIVER === 'lowdb'
+
+    if (!isLowdb) {
+      await BookmarkModel.init()
+    }
 
     const postRepository: PostRepository = isLowdb
       ? new (await import('./infrastructure/database/lowdb-post-repository')).LowdbPostRepository()
@@ -85,7 +90,11 @@ async function main() {
     app.use(postRouter)
 
     const PORT = process.env.PORT || 8080
-    app.listen(PORT, () => {
+    app.listen(PORT, (error?: Error) => {
+      if (error) {
+        logger.error({ error: error.message }, 'Error starting the HTTP server')
+        process.exit(1)
+      }
       logger.info(`Server is running on port ${PORT}`)
     })
 

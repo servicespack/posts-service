@@ -5,7 +5,7 @@ import { Post } from '../domain/entities/post'
 import { PostNotFoundError } from './errors'
 import { GetPostUseCase } from './get-post-use-case'
 
-describe('getPostUseCase', () => {
+describe(GetPostUseCase.name, () => {
   let postRepository: PostRepository
   let cache: ICacheAdapter
   let useCase: GetPostUseCase

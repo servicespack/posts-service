@@ -43,17 +43,31 @@ const ListPostsResponseSchema = registry.register('ListPostsResponse', z.object(
   total: z.number(),
 }))
 
+const CreatePostResponseSchema = registry.register('CreatePostResponse', z.object({
+  created: z.boolean(),
+  post: PostResponseSchema,
+}))
+
+const UpdatePostResponseSchema = registry.register('UpdatePostResponse', z.object({
+  updated: z.boolean(),
+}))
+
+const ReactPostResponseSchema = registry.register('ReactPostResponse', z.object({
+  success: z.boolean(),
+}))
+
 const ListBookmarksResponseSchema = registry.register('ListBookmarksResponse', z.object({
   data: z.array(z.object({
-    id: z.string(),
-    userId: z.string(),
+    bookmarkId: z.string(),
     postId: z.string(),
-    createdAt: z.string().optional(),
   })),
   total: z.number(),
 }))
 
-const TrendingTagsResponseSchema = registry.register('TrendingTagsResponse', z.array(z.string()))
+const TrendingTagsResponseSchema = registry.register('TrendingTagsResponse', z.array(z.object({
+  tag: z.string(),
+  count: z.number(),
+})))
 
 const PaginationQuerySchema = z.object({
   page: z.string().regex(/^\d+$/).transform(Number).optional(),
@@ -85,7 +99,7 @@ registry.registerPath({
   summary: 'Create a post',
   request: { body: { content: { 'application/json': { schema: CreatePostRequestSchema } }, required: true } },
   responses: {
-    201: { description: 'Post created', content: { 'application/json': { schema: PostResponseSchema } } },
+    201: { description: 'Post created', content: { 'application/json': { schema: CreatePostResponseSchema } } },
     400: { description: 'Bad request - Invalid request body' },
   },
 })
@@ -124,7 +138,7 @@ registry.registerPath({
     body: { content: { 'application/json': { schema: UpdatePostRequestSchema } }, required: true },
   },
   responses: {
-    200: { description: 'OK', content: { 'application/json': { schema: PostResponseSchema } } },
+    200: { description: 'OK', content: { 'application/json': { schema: UpdatePostResponseSchema } } },
     400: { description: 'Bad request - Invalid id or request body' },
     403: { description: 'Forbidden - Not the post author' },
     404: { description: 'Not found' },
@@ -155,7 +169,7 @@ registry.registerPath({
     body: { content: { 'application/json': { schema: ReactRequestSchema } }, required: true },
   },
   responses: {
-    200: { description: 'OK', content: { 'application/json': { schema: PostResponseSchema } } },
+    200: { description: 'OK', content: { 'application/json': { schema: ReactPostResponseSchema } } },
     400: { description: 'Bad request - Invalid id or reaction type' },
     404: { description: 'Not found' },
     500: { description: 'Internal server error' },
@@ -203,7 +217,7 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'delete',
-  path: '/bookmarks/{id}',
+  path: '/posts/bookmarks/{id}',
   summary: 'Unbookmark',
   request: { params: z.object({ id: z.string() }) },
   responses: {

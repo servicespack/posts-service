@@ -1,11 +1,12 @@
 import type { PostControllerWithBookmarks } from '../controllers/post-controller'
 import { Router } from 'express'
 import { authMiddleware } from '../middlewares/auth-middleware'
-import { authLimiter, strictLimiter } from '../middlewares/rate-limiter'
+import { authLimiter, generalLimiter, strictLimiter } from '../middlewares/rate-limiter'
 
 export function createPostRouter(postController: PostControllerWithBookmarks): Router {
   const router = Router()
 
+  router.use(generalLimiter)
   router.use(authMiddleware)
 
   // Read-only routes - standard authenticated rate limit

@@ -46,7 +46,7 @@ export class MongoosePostRepository implements PostRepository {
 
     const pipeline: any[] = [{ $match: query }]
 
-    pipeline.push({ $skip: skip }, { $limit: limit })
+    pipeline.push({ $sort: { createdAt: 1, _id: 1 } }, { $skip: skip }, { $limit: limit })
 
     pipeline.push(
       { $addFields: { _idStr: { $toString: '$_id' } } },
@@ -137,10 +137,9 @@ export class MongoosePostRepository implements PostRepository {
 
     const updateResult = await PostModel.updateOne(
       {
-        '_id': postId,
-        'deletedAt': null,
-        'reactions.userId': userId,
-        'reactions.type': { $ne: type },
+        _id: postId,
+        deletedAt: null,
+        reactions: { $elemMatch: { userId, type: { $ne: type } } },
       },
       {
         $set: { 'reactions.$.type': type },

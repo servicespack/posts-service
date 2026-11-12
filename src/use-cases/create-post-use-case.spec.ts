@@ -6,7 +6,7 @@ import { Post } from '../domain/entities/post'
 import { CreatePostUseCase } from './create-post-use-case'
 import { AuthorIdRequiredError, ParentPostNotFoundError, TextRequiredError } from './errors'
 
-describe('createPostUseCase', () => {
+describe(CreatePostUseCase.name, () => {
   let postRepository: PostRepository
   let notifyAdapter: INotificationAdapter
   let cache: ICacheAdapter

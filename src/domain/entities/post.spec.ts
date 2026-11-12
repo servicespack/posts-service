@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Post } from './post'
 
-describe('post Entity', () => {
+describe(Post.name, () => {
   it('should instantiate a Post with correct properties', () => {
     const date = new Date()
     const post = new Post({
