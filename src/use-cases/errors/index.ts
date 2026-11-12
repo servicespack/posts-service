@@ -1,4 +1,6 @@
 export * from './author-id-required-error'
+export * from './bookmark-already-exists-error'
+export * from './bookmark-not-found-error'
 export * from './parent-post-not-found-error'
 export * from './post-id-and-user-id-required-error'
 export * from './post-id-user-id-and-type-required-error'

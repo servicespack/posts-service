@@ -23,6 +23,9 @@ go.work
 # Others
 *.db
 
+# Lowdb data files
+data/
+
 # Node/TypeScript
 node_modules/
 dist/

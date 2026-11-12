@@ -8,6 +8,8 @@ export interface PostProps {
   createdAt?: Date
   updatedAt?: Date
   deletedAt?: Date | null
+  repliesCount?: number
+  replies?: Post[]
 }
 
 export class Post {
@@ -20,6 +22,8 @@ export class Post {
   public createdAt?: Date
   public updatedAt?: Date
   public deletedAt?: Date | null
+  public repliesCount: number
+  public replies?: Post[]
 
   constructor(props: PostProps) {
     this.id = props.id
@@ -31,5 +35,7 @@ export class Post {
     this.createdAt = props.createdAt
     this.updatedAt = props.updatedAt
     this.deletedAt = props.deletedAt
+    this.repliesCount = props.repliesCount ?? 0
+    this.replies = props.replies
   }
 }

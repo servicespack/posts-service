@@ -59,6 +59,9 @@ describe('mongoosePostRepository Integration Tests', () => {
     const filteredByAuthor = await repository.findAll({ authorId: 'a1' })
     expect(filteredByAuthor.total).toBe(2)
 
+    const filteredByMultipleAuthors = await repository.findAll({ authorId: ['a1', 'a2'] })
+    expect(filteredByMultipleAuthors.total).toBe(3)
+
     const filteredByTags = await repository.findAll({ tags: ['tech'] })
     expect(filteredByTags.total).toBe(2)
 
@@ -141,6 +144,22 @@ describe('mongoosePostRepository Integration Tests', () => {
     await PostModel.create({ authorId: 'a1', text: 'Post 1' })
     const result = await repository.findAll({ tags: [] })
     expect(result.data).toHaveLength(1)
+  })
+
+  it('should filter posts by search query (case-insensitive regex on text)', async () => {
+    await PostModel.create({ authorId: 'a1', text: 'This is a nice post about cats' })
+    await PostModel.create({ authorId: 'a1', text: 'Another post about Dogs' })
+    await PostModel.create({ authorId: 'a1', text: 'Cats and Dogs together' })
+
+    const searchCats = await repository.findAll({ search: 'cats' })
+    expect(searchCats.total).toBe(2)
+    expect(searchCats.data.map(p => p.text)).toContain('This is a nice post about cats')
+    expect(searchCats.data.map(p => p.text)).toContain('Cats and Dogs together')
+
+    const searchDogs = await repository.findAll({ search: 'DOG' })
+    expect(searchDogs.total).toBe(2)
+    expect(searchDogs.data.map(p => p.text)).toContain('Another post about Dogs')
+    expect(searchDogs.data.map(p => p.text)).toContain('Cats and Dogs together')
   })
 
   it('should handle invalid or default pagination page and limit values', async () => {
@@ -260,6 +279,49 @@ describe('mongoosePostRepository Integration Tests', () => {
     const postDoc = await PostModel.create({ authorId: 'a1', text: 'Some text' })
     const updated = await repository.update(postDoc._id.toString(), {})
     expect(updated).toBe(false)
+  })
+
+  it('should get trending tags correctly', async () => {
+    // 3 posts with 'nodejs', 2 posts with 'typescript', 1 post with 'mongodb'
+    await PostModel.create({ authorId: 'a1', text: 'Post 1', tags: ['nodejs', 'typescript'] })
+    await PostModel.create({ authorId: 'a2', text: 'Post 2', tags: ['nodejs', 'typescript', 'mongodb'] })
+    await PostModel.create({ authorId: 'a1', text: 'Post 3', tags: ['nodejs'] })
+    // Deleted post should be ignored
+    await PostModel.create({ authorId: 'a1', text: 'Post 4', tags: ['nodejs', 'deleted_tag'], deletedAt: new Date() })
+
+    const trending = await repository.getTrendingTags()
+    expect(trending).toHaveLength(3)
+    expect(trending[0]).toEqual({ tag: 'nodejs', count: 3 })
+    expect(trending[1]).toEqual({ tag: 'typescript', count: 2 })
+    expect(trending[2]).toEqual({ tag: 'mongodb', count: 1 })
+
+    // Test with limit
+    const trendingLimited = await repository.getTrendingTags(1)
+    expect(trendingLimited).toHaveLength(1)
+    expect(trendingLimited[0]).toEqual({ tag: 'nodejs', count: 3 })
+  })
+
+  it('should fetch and populate repliesCount correctly', async () => {
+    const parentPost = await PostModel.create({ authorId: 'a1', text: 'Parent post' })
+    const parentId = parentPost._id.toString()
+
+    await PostModel.create({ authorId: 'a2', text: 'Reply 1', replyToId: parentId })
+    await PostModel.create({ authorId: 'a3', text: 'Reply 2', replyToId: parentId })
+    await PostModel.create({ authorId: 'a4', text: 'Deleted reply', replyToId: parentId, deletedAt: new Date() })
+
+    // Test findById on parent
+    const foundParent = await repository.findById(parentId)
+    expect(foundParent).not.toBeNull()
+    expect(foundParent?.repliesCount).toBe(2)
+
+    // Test findAll on parent
+    const allPosts = await repository.findAll({ search: 'Parent' })
+    expect(allPosts.total).toBe(1)
+    expect(allPosts.data[0].repliesCount).toBe(2)
+
+    // Test create (should be 0)
+    const newPost = await repository.create(new Post({ authorId: 'a5', text: 'New post' }))
+    expect(newPost.repliesCount).toBe(0)
   })
 
   describe('postModel Schema Validations', () => {

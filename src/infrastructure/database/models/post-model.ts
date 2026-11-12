@@ -25,7 +25,7 @@ const PostSchema = new Schema<IPost>(
     authorId: { type: String, required: true },
     text: { type: String, required: true },
     tags: { type: [String], default: [] },
-    replyToId: { type: String, required: false },
+    replyToId: { type: String, required: false, index: true },
     reactions: {
       type: [ReactionSchema],
       default: [],

@@ -16,6 +16,8 @@ describe('deletePostUseCase', () => {
       delete: vi.fn(),
       react: vi.fn(),
       unreact: vi.fn(),
+      getTrendingTags: vi.fn(),
+      findAllReplies: vi.fn(),
     }
     useCase = new DeletePostUseCase(postRepository)
   })

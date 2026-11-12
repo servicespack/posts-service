@@ -1,3 +1,4 @@
+import type { ICacheAdapter } from '../domain/adapters/cache-adapter'
 import type { PostRepository } from '../domain/repositories/post-repository'
 import { PostNotFoundError, TextRequiredError } from './errors'
 
@@ -12,7 +13,10 @@ export interface UpdatePostResponse {
 }
 
 export class UpdatePostUseCase {
-  constructor(private readonly postRepository: PostRepository) {}
+  constructor(
+    private readonly postRepository: PostRepository,
+    private readonly cache?: ICacheAdapter,
+  ) {}
 
   public async execute(request: UpdatePostRequest): Promise<UpdatePostResponse> {
     const updateData: any = {}
@@ -33,6 +37,14 @@ export class UpdatePostUseCase {
     if (!success) {
       throw new PostNotFoundError()
     }
+
+    await this.invalidateCache()
+
     return { updated: true }
+  }
+
+  private async invalidateCache() {
+    await this.cache?.invalidatePattern('posts:*')
+    await this.cache?.invalidatePattern('tags:*')
   }
 }

@@ -1,3 +1,4 @@
+import type { ICacheAdapter } from '../domain/adapters/cache-adapter'
 import type { PostRepository } from '../domain/repositories/post-repository'
 import { PostIdAndUserIdRequiredError, PostNotFoundError } from './errors'
 
@@ -11,7 +12,10 @@ export interface UnreactPostResponse {
 }
 
 export class UnreactPostUseCase {
-  constructor(private readonly postRepository: PostRepository) {}
+  constructor(
+    private readonly postRepository: PostRepository,
+    private readonly cache?: ICacheAdapter,
+  ) {}
 
   public async execute(request: UnreactPostRequest): Promise<UnreactPostResponse> {
     if (!request.postId || !request.userId) {
@@ -29,6 +33,13 @@ export class UnreactPostUseCase {
     }
 
     const success = await this.postRepository.unreact(request.postId, request.userId)
+
+    await this.invalidateCache()
+
     return { success }
+  }
+
+  private async invalidateCache() {
+    await this.cache?.invalidatePattern('posts:*')
   }
 }

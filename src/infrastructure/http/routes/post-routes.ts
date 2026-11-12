@@ -1,20 +1,29 @@
-import type { PostController } from '../controllers/post-controller'
+import type { PostControllerWithBookmarks } from '../controllers/post-controller'
 import { Router } from 'express'
 import { authMiddleware } from '../middlewares/auth-middleware'
+import { authLimiter, strictLimiter } from '../middlewares/rate-limiter'
 
-export function createPostRouter(postController: PostController): Router {
+export function createPostRouter(postController: PostControllerWithBookmarks): Router {
   const router = Router()
 
   router.use(authMiddleware)
 
-  router.get('/posts', postController.list)
-  router.post('/posts', postController.create)
-  router.get('/posts/:id', postController.get)
-  router.patch('/posts/:id', postController.update)
-  router.delete('/posts/:id', postController.delete)
+  // Read-only routes - standard authenticated rate limit
+  router.get('/posts', authLimiter, postController.list)
+  router.get('/posts/tags/trending', authLimiter, postController.getTrendingTags)
+  router.get('/posts/bookmarks', authLimiter, postController.listBookmarks)
+  router.get('/posts/:id', authLimiter, postController.get)
 
-  router.post('/posts/:id/reactions', postController.react)
-  router.delete('/posts/:id/reactions', postController.unreact)
+  // Write routes - strict rate limit
+  router.post('/posts', strictLimiter, postController.create)
+  router.patch('/posts/:id', strictLimiter, postController.update)
+  router.delete('/posts/:id', strictLimiter, postController.delete)
+
+  router.post('/posts/:id/reactions', strictLimiter, postController.react)
+  router.delete('/posts/:id/reactions', strictLimiter, postController.unreact)
+
+  router.post('/posts/:id/bookmarks', strictLimiter, postController.bookmark)
+  router.delete('/posts/bookmarks/:id', strictLimiter, postController.unbookmark)
 
   return router
 }

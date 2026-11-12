@@ -1,1 +1,1 @@
-# Threads API
+# Posts Service

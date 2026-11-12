@@ -1,4 +1,4 @@
-import type { PostController } from '../controllers/post-controller'
+import type { PostControllerWithBookmarks } from '../controllers/post-controller'
 import { describe, expect, it, vi } from 'vitest'
 import { createPostRouter } from './post-routes'
 
@@ -12,7 +12,11 @@ describe('postRoutes', () => {
       delete: vi.fn(),
       react: vi.fn(),
       unreact: vi.fn(),
-    } as unknown as PostController
+      getTrendingTags: vi.fn(),
+      listBookmarks: vi.fn(),
+      bookmark: vi.fn(),
+      unbookmark: vi.fn(),
+    } as unknown as PostControllerWithBookmarks
 
     const router = createPostRouter(mockController)
 
@@ -26,10 +30,20 @@ describe('postRoutes', () => {
 
     expect(routes).toContainEqual({ path: '/posts', methods: ['get'] })
     expect(routes).toContainEqual({ path: '/posts', methods: ['post'] })
+    expect(routes).toContainEqual({ path: '/posts/tags/trending', methods: ['get'] })
     expect(routes).toContainEqual({ path: '/posts/:id', methods: ['get'] })
     expect(routes).toContainEqual({ path: '/posts/:id', methods: ['patch'] })
     expect(routes).toContainEqual({ path: '/posts/:id', methods: ['delete'] })
     expect(routes).toContainEqual({ path: '/posts/:id/reactions', methods: ['post'] })
     expect(routes).toContainEqual({ path: '/posts/:id/reactions', methods: ['delete'] })
+    expect(routes).toContainEqual({ path: '/posts/bookmarks', methods: ['get'] })
+    expect(routes).toContainEqual({ path: '/posts/:id/bookmarks', methods: ['post'] })
+    expect(routes).toContainEqual({ path: '/posts/bookmarks/:id', methods: ['delete'] })
+
+    const trendingIndex = routes.findIndex(r => r.path === '/posts/tags/trending')
+    const idIndex = routes.findIndex(r => r.path === '/posts/:id')
+    expect(trendingIndex).toBeGreaterThan(-1)
+    expect(idIndex).toBeGreaterThan(-1)
+    expect(trendingIndex).toBeLessThan(idIndex)
   })
 })

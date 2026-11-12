@@ -16,6 +16,8 @@ describe('updatePostUseCase', () => {
       delete: vi.fn(),
       react: vi.fn(),
       unreact: vi.fn(),
+      getTrendingTags: vi.fn(),
+      findAllReplies: vi.fn(),
     }
     useCase = new UpdatePostUseCase(postRepository)
   })
@@ -38,6 +40,15 @@ describe('updatePostUseCase', () => {
     expect(response).toEqual({ updated: true })
     expect(postRepository.update).toHaveBeenCalledTimes(1)
     expect(postRepository.update).toHaveBeenCalledWith('post-id', { tags: ['new-tag'] })
+  })
+
+  it('should update a post with both text and tags', async () => {
+    vi.spyOn(postRepository, 'update').mockResolvedValue(true)
+
+    const response = await useCase.execute({ id: 'post-id', text: 'Updated', tags: ['tag1'] })
+
+    expect(response).toEqual({ updated: true })
+    expect(postRepository.update).toHaveBeenCalledWith('post-id', { text: 'Updated', tags: ['tag1'] })
   })
 
   it('should not update if no data is provided', async () => {
